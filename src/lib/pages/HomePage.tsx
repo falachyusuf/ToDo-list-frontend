@@ -4,9 +4,16 @@ import { useForm } from 'react-hook-form';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../components/ui/form';
 import { Input } from '../components/ui/input';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { date, z } from 'zod';
 import { Button } from '../components/ui/button';
 import { Textarea } from '../components/ui/textarea';
+import apiConnection from '../config/apiconnection';
+import { useEffect, useState } from 'react';
+import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover';
+import { cn } from '../utils';
+import { format } from 'date-fns';
+import { CalendarIcon } from 'lucide-react';
+import { Calendar } from '../components/ui/calendar';
 
 const HomePage = () => {
   type FormType = z.infer<typeof formSchema>;
@@ -21,6 +28,8 @@ const HomePage = () => {
         message: 'Activity should be at most 50 characters long',
       }),
     description: z.string(),
+    dateStart: z.date(),
+    dateEnd: z.date(),
   });
 
   const form = useForm<FormType>({
@@ -28,6 +37,8 @@ const HomePage = () => {
     defaultValues: {
       activity: '',
       description: '',
+      dateStart: new Date(),
+      dateEnd: new Date(),
     },
   });
 
@@ -35,12 +46,27 @@ const HomePage = () => {
     console.log(values);
   }
 
+  // const [data, setData] = useState<any>({});
+  // const [error, setError] = useState<string | null>(null);
+  const fetchData = async () => {
+    try {
+      const res = await apiConnection.get('/');
+      console.log(res.data);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
   return (
-    <div className='flex flex-col justify-center items-center border-red min-h-screen'>
-      <div className='h-[200px] w-[500px] border-4 border-slate-700 rounded-lg py-1 px-2'>
+    <div className='min-h-screen flex gap-4 justify-center items-center'>
+      <div className='h-[600px] w-[700px] border-2 border-slate-700 rounded-lg py-1 px-2 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]'>
         <p>testing</p>
       </div>
-      <div className='w-full flex flex-col items-center mt-4'>
+      <div className='flex flex-col items-center mt-4'>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className='flex flex-col w-[500px] gap-2'>
             <FormField
@@ -69,8 +95,76 @@ const HomePage = () => {
                 </FormItem>
               )}
             />
+            <div className=' flex justify-between mt-3 gap-2'>
+              <FormField
+                control={form.control}
+                name='dateStart'
+                render={({ field }) => (
+                  <FormItem className='flex flex-col items-start w-[50%]'>
+                    <FormLabel>Start Date</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant={'outline'}
+                          className={cn(
+                            'w-full justify-start text-left font-normal rounded-lg shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] border border-slate-500',
+                            !field.value && 'text-muted-foreground'
+                          )}
+                        >
+                          <CalendarIcon className='mr-2 h-4 w-4' />
+                          {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className='w-auto p-0'>
+                        <Calendar
+                          mode='single'
+                          selected={field.value}
+                          disabled={(date) => date < new Date().setHours(0, 0, 0, 0)}
+                          onSelect={field.onChange}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name='dateEnd'
+                render={({ field }) => (
+                  <FormItem className='flex flex-col items-start w-[50%]'>
+                    <FormLabel>End Date</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant={'outline'}
+                          className={cn(
+                            'w-full justify-start text-left font-normal rounded-lg shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] border border-slate-500',
+                            !field.value && 'text-muted-foreground'
+                          )}
+                        >
+                          <CalendarIcon className='mr-2 h-4 w-4' />
+                          {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className='w-auto p-0'>
+                        <Calendar
+                          mode='single'
+                          selected={field.value}
+                          disabled={(date) => date < new Date().setHours(0, 0, 0, 0)}
+                          onSelect={field.onChange}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             <Button className='mt-4' type='submit'>
-              Submit
+              Add your activity
             </Button>
           </form>
         </Form>
