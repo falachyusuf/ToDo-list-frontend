@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../components/ui/form';
 import { Input } from '../components/ui/input';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { date, z } from 'zod';
+import { z } from 'zod';
 import { Button } from '../components/ui/button';
 import { Textarea } from '../components/ui/textarea';
 import apiConnection from '../config/apiconnection';
@@ -14,6 +14,7 @@ import { cn } from '../utils';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { Calendar } from '../components/ui/calendar';
+import Card from '../components/ui/card';
 
 const HomePage = () => {
   type FormType = z.infer<typeof formSchema>;
@@ -46,12 +47,12 @@ const HomePage = () => {
     console.log(values);
   }
 
-  // const [data, setData] = useState<any>({});
+  const [data, setData] = useState<any>({});
   // const [error, setError] = useState<string | null>(null);
   const fetchData = async () => {
     try {
       const res = await apiConnection.get('/');
-      console.log(res.data);
+      setData(res.data)
     } catch (err) {
       console.log(err);
     }
@@ -59,12 +60,17 @@ const HomePage = () => {
 
   useEffect(() => {
     fetchData();
+    console.log(data)
   }, []);
 
   return (
     <div className='min-h-screen flex gap-4 justify-center items-center'>
-      <div className='h-[600px] w-[700px] border-2 border-slate-700 rounded-lg py-1 px-2 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]'>
-        <p>testing</p>
+      <div className='h-[450px] w-[500px] border-2 border-slate-700 rounded-lg p-3.5 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex flex-col gap-3'>
+        {/* {data.map(activity => { */}
+          {/* return( */}
+            <Card activity='Testing' description='Lorem ipsum dolor sit amet adsjandsjknsdjncdjkqdsasdaiu dw unandsnd a dnakndsasd iuansdjnakdjnakjdnsajciudans cxasdjandka' dateStart='' dateEnd=''/>
+          {/* ) */}
+        {/* })} */}
       </div>
       <div className='flex flex-col items-center mt-4'>
         <Form {...form}>
