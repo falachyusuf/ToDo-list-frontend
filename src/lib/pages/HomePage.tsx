@@ -15,12 +15,13 @@ import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { Calendar } from '../components/ui/calendar';
 import Card from '../components/ui/card';
+import moment from 'moment';
 
 const HomePage = () => {
   type FormType = z.infer<typeof formSchema>;
 
   const formSchema = z.object({
-    activity: z
+    name: z
       .string()
       .min(2, {
         message: 'Activity should be at least 2 characters long',
@@ -29,30 +30,59 @@ const HomePage = () => {
         message: 'Activity should be at most 50 characters long',
       }),
     description: z.string(),
-    dateStart: z.date(),
-    dateEnd: z.date(),
+    startDate: z.date(),
+    endDate: z.date(),
   });
 
   const form = useForm<FormType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      activity: '',
+      name: '',
       description: '',
-      dateStart: new Date(),
-      dateEnd: new Date(),
+      startDate: new Date(),
+      endDate: new Date(),
     },
   });
+  type ActivityData = {
+    name: string;
+    description: string;
+    startDate: string;
+    endDate: string;
+  };
 
-  function onSubmit(values: FormType) {
-    console.log(values);
-  }
+  const [data, setData] = useState<ActivityData[]>([
+    {
+      name: '',
+      description: '',
+      startDate: '',
+      endDate: '',
+    },
+  ]);
+  const [page, setPage] = useState<number>(0);
+  const [pageSize, setPageSize] = useState<number>(3);
 
-  const [data, setData] = useState<any>({});
-  // const [error, setError] = useState<string | null>(null);
+  const onSubmit = async (values: FormType) => {
+    const postObject = {
+      ...values,
+      startDate: moment(values.startDate).format('YYYY-MM-DD HH:mm:ss'),
+      endDate: moment(values.endDate).format('YYYY-MM-DD HH:mm:ss'),
+    }
+    try {
+      await apiConnection.post(`/`, postObject, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      window.location.reload();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const fetchData = async () => {
     try {
-      const res = await apiConnection.get('/');
-      setData(res.data)
+      const res = await apiConnection.get(`/?pageNumber=${page}&pageSize=${pageSize}`);
+      setData(res.data.responseData);
     } catch (err) {
       console.log(err);
     }
@@ -60,24 +90,34 @@ const HomePage = () => {
 
   useEffect(() => {
     fetchData();
-    console.log(data)
-  }, []);
+  }, [page, pageSize]);
+
+  const formatDate = (date: string) => {
+    const formattedDate = moment(date).format('DD/MM/YYYY');
+    return formattedDate;
+  };
 
   return (
     <div className='min-h-screen flex gap-4 justify-center items-center'>
       <div className='h-[450px] w-[500px] border-2 border-slate-700 rounded-lg p-3.5 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex flex-col gap-3'>
-        {/* {data.map(activity => { */}
-          {/* return( */}
-            <Card activity='Testing' description='Lorem ipsum dolor sit amet adsjandsjknsdjncdjkqdsasdaiu dw unandsnd a dnakndsasd iuansdjnakdjnakjdnsajciudans cxasdjandka' dateStart='' dateEnd=''/>
-          {/* ) */}
-        {/* })} */}
+        {data?.map((activity, index) => {
+          return (
+            <Card
+              activity={activity.name}
+              description={activity.description}
+              dateStart={formatDate(activity.startDate)}
+              dateEnd={formatDate(activity.endDate)}
+              key={index}
+            />
+          );
+        })}
       </div>
       <div className='flex flex-col items-center mt-4'>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className='flex flex-col w-[500px] gap-2'>
             <FormField
               control={form.control}
-              name='activity'
+              name='name'
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Activity*</FormLabel>
@@ -104,7 +144,7 @@ const HomePage = () => {
             <div className=' flex justify-between mt-3 gap-2'>
               <FormField
                 control={form.control}
-                name='dateStart'
+                name='startDate'
                 render={({ field }) => (
                   <FormItem className='flex flex-col items-start w-[50%]'>
                     <FormLabel>Start Date</FormLabel>
@@ -137,7 +177,7 @@ const HomePage = () => {
               />
               <FormField
                 control={form.control}
-                name='dateEnd'
+                name='endDate'
                 render={({ field }) => (
                   <FormItem className='flex flex-col items-start w-[50%]'>
                     <FormLabel>End Date</FormLabel>
