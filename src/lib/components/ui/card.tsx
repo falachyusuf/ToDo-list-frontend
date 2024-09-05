@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from './button';
-import { TrashIcon } from 'lucide-react';
+import { Pencil, TrashIcon } from 'lucide-react';
 
 type CardProps = {
   activity: string;
@@ -22,10 +22,21 @@ const Card: React.FC<CardProps> = ({ activity, description, dateStart, dateEnd }
           {dateStart && dateEnd ? `${dateStart} - ${dateEnd}` : 'No Date Specified'}
         </div>
       </div>
-      {/* Buttons */}
-      <Button className='border border-rose-700 text-rose-700 hover:bg-rose-100 hover:text-rose-800' variant={'outline'}>
-        <TrashIcon height={15} width={15}/>
-      </Button>
+      <div className='flex gap-2'>
+        {/* Buttons */}
+        <Button
+          className='border border-[#ffbb00] text-[#ffbb00] hover:bg-[#ffe399] hover:text-[#ff9b0b]'
+          variant={'outline'}
+        >
+          <Pencil height={15} width={15} />
+        </Button>
+        <Button
+          className='border border-rose-700 text-rose-700 hover:bg-rose-100 hover:text-rose-800'
+          variant={'outline'}
+        >
+          <TrashIcon height={15} width={15} />
+        </Button>
+      </div>
     </div>
   );
 };
