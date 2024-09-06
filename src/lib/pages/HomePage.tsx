@@ -44,6 +44,7 @@ const HomePage = () => {
     },
   });
   type ActivityData = {
+    id : number,
     name: string;
     description: string;
     startDate: string;
@@ -52,6 +53,7 @@ const HomePage = () => {
 
   const [data, setData] = useState<ActivityData[]>([
     {
+      id: 0,
       name: '',
       description: '',
       startDate: '',
@@ -59,21 +61,28 @@ const HomePage = () => {
     },
   ]);
   const [page, setPage] = useState<number>(0);
-  const [pageSize, setPageSize] = useState<number>(3);
+  const [pageSize, setPageSize] = useState<number>(5);
+  const [isUpdate, setIsUpdate] = useState<boolean>(false);
+  const [currentActivityId, setCurrentActivityId] = useState<number | null>(null)
 
   const onSubmit = async (values: FormType) => {
     const postObject = {
       ...values,
       startDate: moment(values.startDate).format('YYYY-MM-DD HH:mm:ss'),
       endDate: moment(values.endDate).format('YYYY-MM-DD HH:mm:ss'),
-    }
+    };
     try {
-      await apiConnection.post(`/`, postObject, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      window.location.reload();
+      if (!isUpdate) {
+        await apiConnection.post(`/`, postObject, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        window.location.reload();
+      } else {
+        await apiConnection.put(`/${currentActivityId}`, postObject)
+        window.location.reload();
+      }
     } catch (error) {
       console.log(error);
     }
@@ -88,8 +97,39 @@ const HomePage = () => {
     }
   };
 
+  console.log('this is the data id', currentActivityId);
+
+  const onDelete = async (id: number) => {
+    try {
+      await apiConnection.delete(`/${id}`);
+      window.location.reload();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const onUpdate = (activity: ActivityData) => {
+    setIsUpdate(true);
+    setCurrentActivityId(activity.id)
+    form.setValue('name', activity.name)
+    form.setValue('description', activity.description)
+    form.setValue('startDate', new Date(activity.startDate))
+    form.setValue('endDate', new Date(activity.endDate))
+  };
+
+  const { reset } = form;
+
   useEffect(() => {
     fetchData();
+    if(!form){
+      reset({
+        name: '',
+        description: '',
+        startDate: new Date(),
+        endDate: new Date(),
+      })
+      setIsUpdate(false);
+    }
   }, [page, pageSize]);
 
   const formatDate = (date: string) => {
@@ -103,6 +143,8 @@ const HomePage = () => {
         {data?.map((activity, index) => {
           return (
             <Card
+              onUpdate={() => onUpdate(activity)}
+              onDelete={() => onDelete(data[index].id)}
               activity={activity.name}
               description={activity.description}
               dateStart={formatDate(activity.startDate)}
@@ -165,7 +207,7 @@ const HomePage = () => {
                         <Calendar
                           mode='single'
                           selected={field.value}
-                          disabled={(date) => date < new Date().setHours(0, 0, 0, 0)}
+                          disabled={(date) => date.getTime() < new Date().setHours(0, 0, 0, 0)}
                           onSelect={field.onChange}
                           initialFocus
                         />
@@ -198,7 +240,7 @@ const HomePage = () => {
                         <Calendar
                           mode='single'
                           selected={field.value}
-                          disabled={(date) => date < new Date().setHours(0, 0, 0, 0)}
+                          disabled={(date) => date.getTime() < new Date().setHours(0, 0, 0, 0)}
                           onSelect={field.onChange}
                           initialFocus
                         />
@@ -210,7 +252,7 @@ const HomePage = () => {
               />
             </div>
             <Button className='mt-4' type='submit'>
-              Add your activity
+              {!isUpdate ? 'Add Activity' : 'Update Activity'}
             </Button>
           </form>
         </Form>

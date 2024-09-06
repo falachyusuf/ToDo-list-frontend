@@ -7,9 +7,11 @@ type CardProps = {
   description: string;
   dateStart: string;
   dateEnd: string;
+  onUpdate: () => void;
+  onDelete: () => void;
 };
 
-const Card: React.FC<CardProps> = ({ activity, description, dateStart, dateEnd }) => {
+const Card: React.FC<CardProps> = ({ activity, description, dateStart, dateEnd, onUpdate, onDelete }) => {
   return (
     <div className='w-full h-auto rounded-lg p-3 bg-white/30 backdrop-blur-md shadow-lg border border-black/10 hover:shadow-xl transition-shadow duration-300 ease-in-out flex justify-between items-center'>
       <div>
@@ -27,12 +29,14 @@ const Card: React.FC<CardProps> = ({ activity, description, dateStart, dateEnd }
         <Button
           className='border border-[#ffbb00] text-[#ffbb00] hover:bg-[#ffe399] hover:text-[#ff9b0b]'
           variant={'outline'}
+          onClick={onUpdate}
         >
           <Pencil height={15} width={15} />
         </Button>
         <Button
           className='border border-rose-700 text-rose-700 hover:bg-rose-100 hover:text-rose-800'
           variant={'outline'}
+          onClick={onDelete}
         >
           <TrashIcon height={15} width={15} />
         </Button>
