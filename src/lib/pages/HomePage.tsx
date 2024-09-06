@@ -44,7 +44,7 @@ const HomePage = () => {
     },
   });
   type ActivityData = {
-    id : number,
+    id: number;
     name: string;
     description: string;
     startDate: string;
@@ -63,7 +63,8 @@ const HomePage = () => {
   const [page, setPage] = useState<number>(0);
   const [pageSize, setPageSize] = useState<number>(5);
   const [isUpdate, setIsUpdate] = useState<boolean>(false);
-  const [currentActivityId, setCurrentActivityId] = useState<number | null>(null)
+  const [currentActivityId, setCurrentActivityId] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const onSubmit = async (values: FormType) => {
     const postObject = {
@@ -80,7 +81,7 @@ const HomePage = () => {
         });
         window.location.reload();
       } else {
-        await apiConnection.put(`/${currentActivityId}`, postObject)
+        await apiConnection.put(`/${currentActivityId}`, postObject);
         window.location.reload();
       }
     } catch (error) {
@@ -89,15 +90,16 @@ const HomePage = () => {
   };
 
   const fetchData = async () => {
+    if (isLoading) return;
+
+    setIsLoading(true);
     try {
       const res = await apiConnection.get(`/?pageNumber=${page}&pageSize=${pageSize}`);
       setData(res.data.responseData);
-    } catch (err) {
-      console.log(err);
+    } finally {
+      setIsLoading(false);
     }
   };
-
-  console.log('this is the data id', currentActivityId);
 
   const onDelete = async (id: number) => {
     try {
@@ -110,24 +112,24 @@ const HomePage = () => {
 
   const onUpdate = (activity: ActivityData) => {
     setIsUpdate(true);
-    setCurrentActivityId(activity.id)
-    form.setValue('name', activity.name)
-    form.setValue('description', activity.description)
-    form.setValue('startDate', new Date(activity.startDate))
-    form.setValue('endDate', new Date(activity.endDate))
+    setCurrentActivityId(activity.id);
+    form.setValue('name', activity.name);
+    form.setValue('description', activity.description);
+    form.setValue('startDate', new Date(activity.startDate));
+    form.setValue('endDate', new Date(activity.endDate));
   };
 
   const { reset } = form;
 
   useEffect(() => {
     fetchData();
-    if(!form){
+    if (!form) {
       reset({
         name: '',
         description: '',
         startDate: new Date(),
         endDate: new Date(),
-      })
+      });
       setIsUpdate(false);
     }
   }, [page, pageSize]);
@@ -139,10 +141,11 @@ const HomePage = () => {
 
   return (
     <div className='min-h-screen flex gap-4 justify-center items-center'>
-      <div className='h-[450px] w-[500px] border-2 border-slate-700 rounded-lg p-3.5 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex flex-col gap-3'>
+      <div className='h-[450px] w-[500px] border-2 border-slate-700 rounded-lg p-3.5 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex flex-col gap-3 overflow-auto'>
         {data?.map((activity, index) => {
           return (
             <Card
+              onLoading={isLoading}
               onUpdate={() => onUpdate(activity)}
               onDelete={() => onDelete(data[index].id)}
               activity={activity.name}
