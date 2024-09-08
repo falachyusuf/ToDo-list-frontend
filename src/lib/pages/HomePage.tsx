@@ -60,11 +60,11 @@ const HomePage = () => {
       endDate: '',
     },
   ]);
-  const [page, setPage] = useState<number>(0);
-  const [pageSize, setPageSize] = useState<number>(5);
+  const page: number = 0;
   const [isUpdate, setIsUpdate] = useState<boolean>(false);
   const [currentActivityId, setCurrentActivityId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [hasMore, setHasMore] = useState(true);
 
   const onSubmit = async (values: FormType) => {
     const postObject = {
@@ -94,7 +94,7 @@ const HomePage = () => {
 
     setIsLoading(true);
     try {
-      const res = await apiConnection.get(`/?pageNumber=${page}&pageSize=${pageSize}`);
+      const res = await apiConnection.get(`/?pageNumber=0&pageSize=5`);
       setData(res.data.responseData);
     } finally {
       setIsLoading(false);
@@ -132,11 +132,26 @@ const HomePage = () => {
       });
       setIsUpdate(false);
     }
-  }, [page, pageSize]);
+  }, [page]);
 
   const formatDate = (date: string) => {
     const formattedDate = moment(date).format('DD/MM/YYYY');
     return formattedDate;
+  };
+
+  const loadMore = async () => {
+    if (!hasMore) return;
+    const nextPage = page + 1;
+    const res = await apiConnection.get(`/?pageNumber=${nextPage}&pageSize=5`);
+    const newData = res.data.responseData;
+    if (newData.length > 0) {
+      setData([...data, ...newData]);
+      if (newData.length < 5) {
+        setHasMore(false);
+      }
+    } else {
+      setHasMore(false);
+    }
   };
 
   return (
@@ -156,6 +171,17 @@ const HomePage = () => {
             />
           );
         })}
+        {data.length < 5 ? (
+          ''
+        ) : hasMore ? (
+          <Button onClick={loadMore} variant={'outline'}>
+            Load More
+          </Button>
+        ) : (
+          <div className='w-full border border-rose-300 text-center bg-rose-100 rounded-lg p-1.5 text-sm text-rose-900'>
+            No more data should be loaded
+          </div>
+        )}
       </div>
       <div className='flex flex-col items-center mt-4'>
         <Form {...form}>
